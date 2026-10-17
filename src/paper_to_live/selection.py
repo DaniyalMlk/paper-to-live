@@ -110,7 +110,8 @@ def reconstruct_positions(strategy: FloatArray, market: FloatArray) -> Reconstru
             ambiguous += 1
         positions[day] = carried
 
-    worst = float(np.max(np.abs(positions * market - strategy))) if strategy.size else 0.0
+    residual = np.abs(positions * market - strategy)
+    worst = float(np.max(residual)) if strategy.size else 0.0
     if worst > _SNAP_TOLERANCE:
         raise ReconstructionFailed(
             f"recovered positions miss the backtest by {worst!r} at worst"
@@ -212,7 +213,7 @@ def run_selection(settings: Settings) -> SelectionResult:
     deflated = deflated_sharpe_ratio(
         best.estimate,
         periods,
-        n_trials=max(1, int(round(effective))),
+        n_trials=max(1, round(effective)),
         trials_variance=float(np.var(sharpes, ddof=1)),
         trials_mean=float(np.mean(sharpes)),
         skewness=moments.skewness,

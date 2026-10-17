@@ -7,6 +7,7 @@ carried between stages in a mutable buffer.
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 from datetime import date
 from typing import TypeAlias
@@ -78,7 +79,7 @@ class Settings:
 
 def annualised(per_period: float) -> float:
     """A per-period Sharpe ratio stated per year."""
-    return per_period * PERIODS_PER_YEAR**0.5
+    return per_period * math.sqrt(PERIODS_PER_YEAR)
 
 
 def to_bps(fraction: float) -> float:
