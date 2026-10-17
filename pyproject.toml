@@ -1,0 +1,60 @@
+[build-system]
+requires = ["setuptools>=77", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "paper-to-live"
+version = "0.1.0"
+description = "A backtested strategy walked from paper Sharpe to a funded book: selection bias, execution cost, tail risk and financing."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Daniyal" }]
+keywords = ["backtest", "selection-bias", "execution", "risk", "quantitative-finance"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Financial and Insurance Industry",
+    "Programming Language :: Python :: 3",
+    "Topic :: Office/Business :: Financial :: Investment",
+    "Typing :: Typed",
+]
+dependencies = [
+    "numpy>=1.24",
+    "holdout-backtest>=0.1,<0.2",
+    "slippage-tca>=0.1,<0.2",
+    "shortfall>=0.1,<0.2",
+    "tenor>=0.1,<0.2",
+]
+
+[project.urls]
+Homepage = "https://github.com/DaniyalMlk/paper-to-live"
+Source = "https://github.com/DaniyalMlk/paper-to-live"
+Issues = "https://github.com/DaniyalMlk/paper-to-live/issues"
+
+[project.scripts]
+paper-to-live = "paper_to_live.cli:main"
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "mypy>=1.8", "ruff>=0.4"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+paper_to_live = ["py.typed"]
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["tests"]
+
+[tool.mypy]
+strict = true
+packages = ["paper_to_live"]
+
+[tool.ruff]
+line-length = 88
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "RUF"]
