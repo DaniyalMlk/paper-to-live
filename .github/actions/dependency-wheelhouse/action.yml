@@ -1,0 +1,63 @@
+name: Dependency wheelhouse
+description: >
+  Make the four libraries this demonstration runs on resolvable before they
+  exist on a package index, by building them from their repositories into a
+  local wheelhouse.
+
+# This action is scaffolding with a known end. `pyproject.toml` asks for bounded
+# version ranges on each library, which is what a published distribution must
+# carry — a `git+https` direct reference is refused on upload, so it cannot be
+# what the metadata says. But none of the libraries has a release yet, so an
+# ordinary resolve against the index finds nothing.
+#
+# Building them here and exporting PIP_FIND_LINKS gives every later `pip` call
+# in the job somewhere to find them, without threading a flag through each one
+# and without weakening the declared requirement. The resolution path is the
+# one an index install takes; only the source of the file differs.
+#
+# The repository name is not always the distribution name: `slippage`
+# publishes as `slippage-tca` and `holdout` as `holdout-backtest`, because the
+# short names on the index belong to unrelated projects. That does not matter
+# here — pip reads the name out of the built wheel — but it is why the list
+# below does not match `pyproject.toml` line for line.
+#
+# Each library is built from its own default branch at job time and nothing is
+# cached, which is deliberate: this repository exists to show that the four fit
+# together, and a stale wheel would hide the day they stop fitting.
+#
+# When the libraries are released, delete this directory and every `uses:` line
+# that references it. Nothing else in the workflow depends on it.
+
+inputs:
+  repositories:
+    description: Whitespace-separated repositories to build the dependencies from.
+    required: false
+    default: >-
+      https://github.com/DaniyalMlk/holdout.git
+      https://github.com/DaniyalMlk/slippage.git
+      https://github.com/DaniyalMlk/shortfall.git
+      https://github.com/DaniyalMlk/tenor.git
+  wheelhouse:
+    description: Directory the built wheels are placed in.
+    required: false
+    default: /tmp/wheelhouse
+
+runs:
+  using: composite
+  steps:
+    - name: Build the dependencies into a wheelhouse
+      shell: bash
+      run: |
+        python -m pip install --upgrade pip wheel
+        for repository in ${{ inputs.repositories }}; do
+          # --no-deps stops pip going to the index for each library's own
+          # requirements while building it. They are resolved normally by the
+          # install that follows, from the index, where they exist.
+          python -m pip wheel --no-deps -w "${{ inputs.wheelhouse }}" \
+            "git+$repository"
+        done
+        ls -l "${{ inputs.wheelhouse }}"
+
+    - name: Point pip at the wheelhouse for the rest of the job
+      shell: bash
+      run: echo "PIP_FIND_LINKS=${{ inputs.wheelhouse }}" >> "$GITHUB_ENV"
