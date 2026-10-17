@@ -20,7 +20,9 @@ def net() -> tuple[Settings, np.ndarray]:
     return settings, run_execution(settings, selection).net_returns
 
 
-def test_shortfall_is_worse_than_value_at_risk(net: tuple[Settings, np.ndarray]) -> None:
+def test_shortfall_is_worse_than_value_at_risk(
+    net: tuple[Settings, np.ndarray],
+) -> None:
     """An average of the tail cannot be milder than where the tail starts.
 
     True by construction, which is why it is worth asserting: if it ever
