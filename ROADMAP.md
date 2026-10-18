@@ -46,5 +46,29 @@ Each phase leaves the repository runnable. A phase is done when its work is on
 
 ## Phase 8 — Distribution
 
-- [ ] Depend on released versions of the libraries instead of building them
-- [ ] Release metadata and a tag-driven publish
+- [ ] Depend on released versions of the libraries instead of building them —
+      waiting on the four libraries having releases to depend on. The declared
+      requirements are already the bounded ranges this needs; what is missing is
+      anything on the index for them to resolve to
+- [x] Release metadata and a tag-driven publish
+- [x] Metadata checked by the suite rather than by the first person to install
+      it: the version in two files, the licence reaching the artefact and not
+      just the repository, `py.typed` inside the package, the console script
+      pointing at the function that implements it
+- [x] The dependency list pinned to a shape — four bounded ranges, no direct
+      references — since a `git+https` requirement is refused on upload and so
+      cannot be what a publishable distribution says
+- [x] Each declared library walked from the requirement through the installed
+      distribution to the module, because two of the four do not import under
+      the name the index serves them by
+- [x] A tag-against-declared-version guard, `twine check --strict`, and the
+      sdist and the wheel each installed into a clean environment and run — two
+      code paths, so checking one proves nothing about the other
+- [x] The two artefacts' tables diffed against each other, because a claim that
+      depends on which artefact you installed is not a claim
+- [x] Publishing split into a job that checks out no code and runs none, holding
+      `id-token: write` and nothing else, so no credential is stored anywhere
+- [x] A gate in front of all of it asking the index whether the declared
+      requirements resolve, so that tagging too early fails the build rather
+      than shipping something uninstallable; verified against the index as it
+      stands, where it exits on `holdout-backtest (from versions: none)`

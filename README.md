@@ -178,6 +178,20 @@ CI does the same thing, building each library from its default branch at job
 time with no cache: this repository exists to show that the four fit together,
 and a stale wheel would hide the day they stop.
 
+When they are released, that first command becomes `pip install paper-to-live`
+and nothing else changes. The declared requirements are already the bounded
+ranges a published distribution has to carry — a `git+https` direct reference
+is refused on upload, so it cannot be what the metadata says — which means the
+metadata here is correct and currently unsatisfiable.
+
+That is a trap worth closing rather than remembering, so the release workflow
+closes it. Its first job asks the index whether every declared requirement can
+actually be resolved, with no wheelhouse on the path, which is the resolve
+`pip install paper-to-live` performs. A version tag pushed before the four
+libraries exist fails there instead of publishing something nobody can
+install — and a published version can never be replaced. The job turns green on
+its own on the day they are released, with nothing edited.
+
 ## Layout
 
 | Module | Stage |
