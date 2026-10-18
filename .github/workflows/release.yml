@@ -1,0 +1,163 @@
+name: release
+
+# Pushing a version tag is the whole trigger. There is no manual dispatch and no
+# branch trigger: a release is a tag, and anything that can publish without one
+# is a way to publish something nobody meant to.
+on:
+  push:
+    tags: ["v[0-9]+.[0-9]+.[0-9]+"]
+
+# Read-only by default. The one job that needs a token to exist asks for it, and
+# asks for nothing else.
+permissions:
+  contents: read
+
+jobs:
+  # This package is not publishable yet, and the reason is structural rather
+  # than a thing somebody has to remember. It declares bounded requirements on
+  # four libraries that are not on any index, so a published distribution would
+  # resolve to nothing for anybody who tried to install it — and the version
+  # that did so could never be replaced.
+  #
+  # So the gate is a job rather than a comment. It asks the index whether each
+  # declared requirement can actually be satisfied, and a tag pushed before they
+  # can fails here instead of shipping something uninstallable. On the day the
+  # four are released this job turns green on its own, with nothing edited.
+  dependencies:
+    name: every declared dependency exists on the index
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Resolve the declared requirements against the index alone
+        # `--dry-run` resolves without installing, and no wheelhouse is on the
+        # path here, which is the point: this is the resolve a consumer's `pip
+        # install paper-to-live` performs. The requirements are read out of the
+        # metadata rather than retyped, so the check cannot drift from what is
+        # actually declared.
+        run: |
+          python -m pip install --upgrade pip
+          python - <<'PY'
+          import pathlib
+          import tomllib
+
+          declared = tomllib.loads(pathlib.Path("pyproject.toml").read_text())
+          requirements = declared["project"]["dependencies"]
+          pathlib.Path("requirements.txt").write_text("\n".join(requirements) + "\n")
+          print("\n".join(requirements))
+          PY
+          pip install --dry-run --ignore-installed --report /dev/null \
+            -r requirements.txt
+
+  # Everything that can fail is in this job, before anything leaves the runner.
+  # A distribution that cannot be installed is much easier to deal with as a red
+  # build than as a release that can never be replaced.
+  build:
+    name: build and prove the distributions install
+    needs: dependencies
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # The tag is written by hand and the version is written in a file, so they
+      # can disagree, and the failure that follows is a release whose reported
+      # version is not the version anyone asked for. Checking first costs a
+      # second; the alternative cannot be undone.
+      - name: The tag and the declared version must agree
+        run: |
+          python - <<'PY'
+          import os
+          import sys
+          import tomllib
+
+          tag = os.environ["GITHUB_REF_NAME"]
+          with open("pyproject.toml", "rb") as handle:
+              declared = tomllib.load(handle)["project"]["version"]
+
+          if tag != f"v{declared}":
+              sys.exit(f"tag {tag} does not match the declared version {declared}")
+          print(f"tag {tag} matches the declared version {declared}")
+          PY
+
+      - name: Build the sdist and the wheel
+        run: |
+          python -m pip install --upgrade pip build twine
+          python -m build
+
+      # twine's own reading of the metadata, which is stricter than the build
+      # backend's. It is the same check the index applies on upload, so failing
+      # it here is failing it in the only place a failure is still cheap.
+      - name: Check the metadata the index will read
+        run: python -m twine check --strict dist/*
+
+      # Both artefacts are installed, separately, with no source tree in reach.
+      # The wheel and the sdist are built by different code paths and a file
+      # missing from one can be present in the other, so checking one proves
+      # nothing about the other. The commands run from /tmp for the same reason:
+      # from the checkout, `import paper_to_live` would find src/ rather than
+      # the thing just installed.
+      - name: The wheel installs into a clean environment and runs
+        run: |
+          python -m venv /tmp/from-wheel
+          /tmp/from-wheel/bin/pip install dist/*.whl
+          test "$(/tmp/from-wheel/bin/paper-to-live --version)" \
+            = "paper-to-live ${GITHUB_REF_NAME#v}"
+          cd /tmp
+          /tmp/from-wheel/bin/paper-to-live run > /tmp/wheel-table.txt
+          grep -q "WHERE THE SHARPE RATIO WENT" /tmp/wheel-table.txt
+          /tmp/from-wheel/bin/paper-to-live run --json > /tmp/wheel.json
+          python -c "
+          import json
+          json.dumps(json.load(open('/tmp/wheel.json')), allow_nan=False)
+          "
+
+      - name: The sdist installs into a clean environment and runs
+        run: |
+          python -m venv /tmp/from-sdist
+          /tmp/from-sdist/bin/pip install dist/*.tar.gz
+          test "$(/tmp/from-sdist/bin/paper-to-live --version)" \
+            = "paper-to-live ${GITHUB_REF_NAME#v}"
+          cd /tmp
+          /tmp/from-sdist/bin/paper-to-live run > /tmp/sdist-table.txt
+          grep -q "WHERE THE SHARPE RATIO WENT" /tmp/sdist-table.txt
+
+      # The two tables have to agree line for line. This package's whole claim
+      # is that a backtested strategy walked through four libraries lands on a
+      # particular set of figures; two artefacts that print different figures
+      # would mean the claim depends on which one you installed.
+      - name: Both artefacts print the same table
+        run: diff /tmp/wheel-table.txt /tmp/sdist-table.txt
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: distributions
+          path: dist/
+
+  # Split from the build so that the job holding the publishing identity does
+  # nothing but publish: it checks out no code and runs no project code, so
+  # there is nothing in it that could reach the token it is given.
+  publish:
+    name: publish to the package index
+    needs: build
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      # The short-lived OpenID Connect token the index exchanges for an upload
+      # token. This is the whole point of trusted publishing: no API token is
+      # stored in this repository, in these workflows, or anywhere else.
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: distributions
+          path: dist/
+
+      - uses: pypa/gh-action-pypi-publish@release/v1
