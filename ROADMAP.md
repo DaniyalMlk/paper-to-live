@@ -72,3 +72,32 @@ Each phase leaves the repository runnable. A phase is done when its work is on
       requirements resolve, so that tagging too early fails the build rather
       than shipping something uninstallable; verified against the index as it
       stands, where it exits on `holdout-backtest (from versions: none)`
+
+## Phase 9 — A front page that says what it checked
+
+- [x] A table of what was measured and against what, above the install line,
+      so the output at the top of the page stops being a claim about itself
+- [x] The row the project exists for first: the market's drift is zero, so the
+      winner of 322 rules won by luck and the deflated Sharpe ratio is being
+      measured against a *known answer* rather than against nothing
+- [x] Its guard beside it, since an assertion no input can violate tests
+      nothing — 0.95 shown to be attainable on the same sample length and the
+      same trial dispersion
+- [x] The identities named as identities: the erosion column adds up to zero
+      and the recovered positions reproduce their own series to zero, neither
+      of them "nearly"
+- [x] The repricing error quoted as a bound, since the last bits a root finder
+      lands on are not portable between interpreters
+- [x] Every figure produced by `paper-to-live run --json`, which CI already
+      runs against the built wheel, rather than by a new script
+- [x] Pinned in three directions — a figure that moves, a row that is deleted,
+      and a table row that is not among the pinned ones — with the table found
+      by its heading, because this page carries two other tables and counting
+      every pipe in it would pass for the wrong reason
+- [x] The value direction deliberately not scanned: the page quotes 0.82,
+      0.70, 0.35 and 0.27 within a few lines of each other, so a check looking
+      for a number near a place can pass against the wrong one
+- [x] The seed sweep's width counted out of the test file rather than
+      restated, because "at every seed swept" is only worth reading if the
+      sweep is wider than one
+
