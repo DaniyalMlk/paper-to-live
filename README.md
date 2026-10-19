@@ -161,6 +161,59 @@ A test sweeps the seeds and asserts that no draw produces a deflated Sharpe
 ratio a reader would fund. Another asserts that 0.95 is a threshold this setup
 *could* reach, since an assertion no input can violate tests nothing.
 
+## What is checked, and against what
+
+Everything above is this repository's own output, which is the easiest kind of
+number to produce and the hardest to believe. So here is what each line was
+checked against, before the install line. Every figure is produced by
+`paper-to-live run --json`, which CI runs against the built wheel and which
+this repository's suite reads back, so a figure that moves fails on the commit
+that moved it:
+
+| Check | Result |
+| --- | --- |
+| The search run against a market with no exploitable structure | winner's paper Sharpe 0.82, deflated to 0.70; under 0.95 at every seed swept |
+| 0.95 shown to be reachable at all, so the row above is evidence | a 0.10 daily Sharpe over the same 1008 days clears it; a quarter of that edge does not |
+| The erosion column, as an identity rather than an arrangement | 0.8226 less 0.2039 less 0.2732 is 0.3455, residue 0.0 |
+| 322 crossover rules, counted as independent trials | 35.0 effective, by the eigenvalue method |
+| Recovered positions against the return series they came from | worst error exactly 0.0 over 1008 days, 0 of them ambiguous |
+| The bootstrapped curve repricing the quotes it was built from | 5.6e-17 worst error, 4 instruments |
+| Published impact coefficients used as averages rather than as peaks | 415 bps against the 207 bps actually charged |
+
+**The first row is the one the project exists for.** The generator's drift term
+is zero, so the simulated market has nothing in it to find and whatever wins a
+search over it won by luck. That makes the deflated Sharpe ratio a measurement
+against a *known answer*: the true Sharpe ratio is zero, and the honest report
+of a 0.82 winner is a coin flip's worth of evidence that it is not worthless.
+Coming back with 0.70 is the library being right rather than the library
+producing a number. A test sweeps six seeds and asserts the figure never
+reaches 0.95 at any of them, so the conclusion is not a property of the seed
+this page happens to print.
+
+**The second row guards the first.** An assertion no input can violate tests
+nothing, so 0.95 has to be shown attainable on the same sample length and the
+same trial dispersion — otherwise "never above 0.95" is a statement about the
+threshold rather than about the market.
+
+**The third and fifth rows are exact zeros, not small numbers.** The erosion
+column either adds up or the four figures printed above are not a decomposition
+of anything. The recovered holdings either reproduce the series they were
+derived from or every cost below them was computed for a strategy nobody ran —
+which is why that check raises rather than warning.
+
+The repricing error is quoted as a bound rather than as digits, deliberately.
+The last bits a root-found quantity lands on are not reproducible across
+interpreters — the same figure in `tenor` comes back at -8.3e-14 on CPython
+3.12 and +1.3e-13 on 3.11 — so ten significant places would be a number that
+happens to be true where it was measured. The bound is the claim.
+
+```bash
+paper-to-live run --json     # every figure above, as a payload
+```
+
+Behind them: 94 tests on Python 3.10 through 3.13, run against the four
+libraries built from their default branches at job time.
+
 ## Installing
 
 The four libraries are not on a package index yet, so until they are, install
