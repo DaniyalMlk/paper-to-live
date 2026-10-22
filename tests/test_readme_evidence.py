@@ -64,6 +64,7 @@ ROWS = (
     "Recovered positions against the return series they came from",
     "The bootstrapped curve repricing the quotes it was built from",
     "Published impact coefficients used as averages rather than as peaks",
+    "The financing haircut by three routes, one of them another package",
 )
 
 

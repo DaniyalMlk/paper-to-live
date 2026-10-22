@@ -179,6 +179,7 @@ that moved it:
 | Recovered positions against the return series they came from | worst error exactly 0.0 over 1008 days, 0 of them ambiguous |
 | The bootstrapped curve repricing the quotes it was built from | 5.6e-17 worst error, 4 instruments |
 | Published impact coefficients used as averages rather than as peaks | 415 bps against the 207 bps actually charged |
+| The financing haircut by three routes, one of them another package | the hurdle, the drop and holdout.financing_impact agree to 3e-16 |
 
 **The first row is the one the project exists for.** The generator's drift term
 is zero, so the simulated market has nothing in it to find and whatever wins a
@@ -194,6 +195,26 @@ this page happens to print.
 nothing, so 0.95 has to be shown attainable on the same sample length and the
 same trial dispersion — otherwise "never above 0.95" is a statement about the
 threshold rather than about the market.
+
+**The last row checks this repository against a different one.** The funding
+stage reports the Sharpe ratio before financing, the ratio after it, and the
+hurdle; the first two differ by the third, because the hurdle is
+`zero / annual_volatility` and the drop is `daily * sqrt(252) / sd`, which is
+the same number reached two ways inside one dataclass. Nothing asserted that
+they agreed. `holdout.financing_impact` is a third route from outside this
+package entirely, and its closed form `rate / volatility` is a fourth with a
+residual that has to be zero because the rate is constant over the horizon. All
+of them land on 0.22417514. An agreement with an outside implementation is
+worth more than any assertion this repository could make on its own, which is
+also why it is checked at three valuation dates rather than at the one printed
+above.
+
+That comparison also settled a convention the module had only argued for in a
+comment. The stage reads a continuously compounded zero rate and charges
+`zero / 252` a day, where subtracting from an arithmetic return wants
+`expm1(zero / 252)`. The looseness is **1.3e-05 of annualised Sharpe ratio
+against a haircut of 0.224** — four orders below the thing being corrected, so
+the convention is justified by a measurement rather than by the argument.
 
 **The third and fifth rows are exact zeros, not small numbers.** The erosion
 column either adds up or the four figures printed above are not a decomposition
@@ -211,7 +232,7 @@ happens to be true where it was measured. The bound is the claim.
 paper-to-live run --json     # every figure above, as a payload
 ```
 
-Behind them: 94 tests on Python 3.10 through 3.13, run against the four
+Behind them: 100 tests on Python 3.10 through 3.13, run against the four
 libraries built from their default branches at job time.
 
 ## Installing
