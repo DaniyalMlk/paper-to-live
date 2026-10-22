@@ -101,3 +101,32 @@ Each phase leaves the repository runnable. A phase is done when its work is on
       restated, because "at every seed swept" is only worth reading if the
       sweep is wider than one
 
+
+## Phase 10 — Three routes to the financing haircut
+
+`FundingResult` reported the Sharpe ratio before financing, the ratio after it,
+and the hurdle. The first two differ by the third, because the hurdle is
+`zero / annual_volatility` and the drop is `daily * sqrt(252) / sd` — the same
+number reached two ways inside one dataclass, with nothing asserting that they
+agree. The report prints them a row apart, where a reader would never see them
+part company.
+
+- [x] The internal identity asserted, so the two routes cannot drift
+- [x] A third route from outside this package: `holdout.financing_impact`,
+      a different implementation of the same correction
+- [x] A fourth from its closed form `rate / volatility`, whose residual has to
+      be zero here because the stage reads one point off the curve for the
+      whole horizon
+- [x] All of them checked at three valuation dates rather than at the one the
+      front page prints
+- [x] The continuous-rate convention measured rather than argued: charging
+      `zero / 252` where an arithmetic return wants `expm1(zero / 252)` costs
+      1.3e-05 of annualised Sharpe against a haircut of 0.224
+- [x] Five ways of breaking the stage confirmed to fail first, four or five
+      tests each
+- [x] A row on the front page, since this is evidence rather than new surface
+
+Nothing new is computed in this phase. What it adds is that the figure the
+report leads with — the financing line of the erosion column — is now pinned
+against an implementation in another package, which is a stronger statement
+than this repository can make about itself. The agreement is 3e-16.
