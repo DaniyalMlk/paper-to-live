@@ -37,10 +37,10 @@ ROOT = Path(__file__).resolve().parent.parent
 DISTRIBUTION = "paper-to-live"
 
 #: The four libraries this demonstration chains together, as the metadata names
-#: them. Two of them are not importable under these names: `slippage-tca`
-#: imports as `slippage` and `holdout-backtest` as `holdout`, because the short
-#: names on the index belong to unrelated projects.
-LIBRARIES = ("holdout-backtest", "slippage-tca", "shortfall", "tenor")
+#: them. Three of them are not importable under these names: `slippage-tca`
+#: imports as `slippage`, `holdout-backtest` as `holdout` and `tenor-curves` as
+#: `tenor`, because the short names on the index belong to unrelated projects.
+LIBRARIES = ("holdout-backtest", "slippage-tca", "shortfall", "tenor-curves")
 
 
 def _pyproject() -> dict[str, object]:
@@ -198,7 +198,7 @@ def test_each_declared_library_is_installed_and_importable() -> None:
         "holdout-backtest": "holdout",
         "slippage-tca": "slippage",
         "shortfall": "shortfall",
-        "tenor": "tenor",
+        "tenor-curves": "tenor",
     }
     for library in LIBRARIES:
         assert re.fullmatch(r"\d+\.\d+\.\d+", version(library)), library
