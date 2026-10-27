@@ -4,7 +4,7 @@ A backtested strategy, walked from its paper Sharpe ratio to the number a desk
 would actually underwrite.
 
 ```console
-$ pip install -e .
+$ pip install paper-to-live
 $ paper-to-live run
 ```
 
@@ -237,34 +237,37 @@ libraries built from their default branches at job time.
 
 ## Installing
 
-The four libraries are not on a package index yet, so until they are, install
-them from source first:
-
 ```console
-$ pip install git+https://github.com/DaniyalMlk/holdout.git \
-              git+https://github.com/DaniyalMlk/slippage.git \
-              git+https://github.com/DaniyalMlk/shortfall.git \
-              git+https://github.com/DaniyalMlk/tenor.git
-$ pip install -e .
+$ pip install paper-to-live
 ```
 
-CI does the same thing, building each library from its default branch at job
-time with no cache: this repository exists to show that the four fit together,
-and a stale wheel would hide the day they stop.
+That one command brings the four libraries with it. Three of them are
+importable under a shorter name than the one the index serves them by, because
+the short names belong to unrelated projects:
 
-When they are released, that first command becomes `pip install paper-to-live`
-and nothing else changes. The declared requirements are already the bounded
-ranges a published distribution has to carry — a `git+https` direct reference
-is refused on upload, so it cannot be what the metadata says — which means the
-metadata here is correct and currently unsatisfiable.
+| requirement | imports as |
+| --- | --- |
+| `holdout-backtest` | `holdout` |
+| `slippage-tca` | `slippage` |
+| `shortfall` | `shortfall` |
+| `tenor-curves` | `tenor` |
 
-That is a trap worth closing rather than remembering, so the release workflow
-closes it. Its first job asks the index whether every declared requirement can
-actually be resolved, with no wheelhouse on the path, which is the resolve
-`pip install paper-to-live` performs. A version tag pushed before the four
-libraries exist fails there instead of publishing something nobody can
-install — and a published version can never be replaced. The job turns green on
-its own on the day they are released, with nothing edited.
+CI does not install them that way. It builds each from its default branch at
+job time with no cache, because this repository exists to show that the four
+fit together, and a released wheel would hide the day they stop fitting by
+pinning them to the last version that worked.
+
+**The release workflow refuses to publish something nobody can install.** Its
+first job asks the index whether every declared requirement resolves, with no
+wheelhouse on the path, which is exactly the resolve `pip install
+paper-to-live` performs for a stranger. The declared requirements are bounded
+ranges rather than `git+https` direct references — those are refused on upload,
+so they could never have been what the metadata said — which meant that for as
+long as the libraries were unpublished, the metadata here was correct and
+unsatisfiable. A version tag pushed in that window would have failed at that
+job rather than publishing a package that installs and then cannot resolve, and
+a published version can never be replaced. The job went green on its own on the
+day the libraries were released, with nothing here edited to make it.
 
 ## Layout
 
