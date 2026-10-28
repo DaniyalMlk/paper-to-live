@@ -50,6 +50,10 @@ $ paper-to-live run
 
 That is the whole output. The rest of this page is what each line means.
 
+**[daniyalmlk.github.io/paper-to-live](https://daniyalmlk.github.io/paper-to-live/)**
+— the same run with the erosion column drawn rather than tabulated, generated
+when the page was built. Every figure on it comes from the payload below.
+
 ## The question
 
 A backtest reports the Sharpe ratio of whichever rule came first out of a

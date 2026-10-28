@@ -46,6 +46,12 @@ jobs:
       - name: Types
         run: mypy
 
+      # The site renders the same run. A generator that cannot run is a front
+      # page that silently stops being republished, and nothing on a branch
+      # would otherwise say so.
+      - name: The site builds
+        run: python docs/build.py
+
   example:
     name: The worked example reproduces its published figures
     runs-on: ubuntu-latest
