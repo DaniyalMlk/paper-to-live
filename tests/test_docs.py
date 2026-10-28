@@ -257,13 +257,17 @@ def test_the_report_on_the_page_is_the_one_the_command_prints(
 def test_the_stages_name_the_four_libraries_the_pipeline_depends_on(
     page: str,
 ) -> None:
-    import tomllib
-
-    manifest = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+    # Read with a regex rather than `tomllib`, which arrived in 3.11 and this
+    # package supports 3.10. CI caught that; the container does not have 3.10
+    # on it, so nothing local would have.
+    manifest = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
+    block = manifest.split("dependencies = [", 1)[1].split("]", 1)[0]
     declared = {
-        re.split(r"[<>=!\[]", item)[0].strip()
-        for item in manifest["project"]["dependencies"]
+        re.split(r"[<>=!\[]", item.strip().strip('",'))[0].strip()
+        for item in block.splitlines()
+        if item.strip().startswith('"')
     }
+    assert "numpy" in declared
     named = {library for _, library, _ in STAGES}
     # numpy is a dependency and not a stage; every stage must be a dependency.
     assert named <= declared
