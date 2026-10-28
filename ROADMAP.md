@@ -130,3 +130,33 @@ Nothing new is computed in this phase. What it adds is that the figure the
 report leads with — the financing line of the erosion column — is now pinned
 against an implementation in another package, which is a stronger statement
 than this repository can make about itself. The agreement is 3e-16.
+
+## Phase 11 — A front page, drawn from the run
+
+- [x] A generated site: the generator returns strings and touches no
+      filesystem, so the tests call it directly and one thin entry point
+      writes `site/`
+- [x] The erosion column *drawn* — a waterfall from the paper figure through
+      execution and financing to what survives, as inline SVG from the
+      pipeline's own payload, with the figure printed on every bar. A column of
+      four numbers makes a reader do the subtraction; the chart does it for
+      them, and the number stays because a bar height is an impression
+- [x] The geometry checked against the arithmetic rather than looked at: each
+      deduction starts where the previous bar ended, each is the right number
+      of pixels for what it takes, and the survivor's top is where the last
+      deduction stopped. A chart that renders cleanly and shows the wrong shape
+      looks exactly like one that is right
+- [x] Two hues, validated rather than chosen — lightness band, chroma floor,
+      colour-vision separation, normal-vision separation and contrast, against
+      the light and the dark chart surface separately — and neither hue
+      load-bearing on its own, because every bar is named and carries a signed
+      figure
+- [x] One evidence gate and not two: the page renders the README's table, which
+      the suite already pins to the payload in both directions, rather than
+      deriving a second rendering of the same measurement
+- [x] The report the command prints, on the page verbatim
+- [x] Nine ways of breaking the page, nine caught — after a first sweep of nine
+      caught eight. The miss was that the level-versus-cost assertion checked
+      the CSS class rather than the fill, so painting every bar one hue passed:
+      the class is metadata and the fill is what a reader sees
+
