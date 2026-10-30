@@ -160,3 +160,16 @@ than this repository can make about itself. The agreement is 3e-16.
       the CSS class rather than the fill, so painting every bar one hue passed:
       the class is metadata and the fill is what a reader sees
 
+## Phase 12 — What the accounting leaves out
+
+- [x] A known-gaps list, eleven lines, each verified against the code and each
+      stated in terms of which way it moves the surviving Sharpe ratio — they
+      all move it the same way, which is the reason the list is worth reading
+- [x] The conventions that are choices rather than omissions named as such, in
+      particular that financing is charged on the capital every day whatever
+      the book was holding
+- [x] A test pairing each line with a predicate, failing when a line goes
+      missing, when a predicate does, when the list shrinks, when a bullet
+      stops saying anything, and when a gap is closed
+- [x] The suite size the README states recounted in a subprocess against a
+      loose bound, after it was found claiming 100 tests against 118
