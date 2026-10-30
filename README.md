@@ -236,8 +236,76 @@ happens to be true where it was measured. The bound is the claim.
 paper-to-live run --json     # every figure above, as a payload
 ```
 
-Behind them: 100 tests on Python 3.10 through 3.13, run against the four
+Behind them: 120 tests on Python 3.10 through 3.13, run against the four
 libraries built from their default branches at job time.
+
+## Known gaps
+
+Every deduction in this report is one the surviving Sharpe ratio has already
+paid. What follows is what it has not, and the list is worth reading in one
+particular way: every omission points the same direction. Each of these would
+take the surviving figure down further, none of them would put any of it back.
+`tests/test_known_gaps.py` pairs each line with a check that it is still
+missing, because a sibling repository's gap list turned out to contain two
+lines describing things that had been built months earlier, and a list nobody
+rechecks is read as current anyway.
+
+- **One instrument.** One simulated price series, one position in it. A real
+  book holds many names at once, and what that changes is not the cost of any
+  single trade but the diversification that would have been earned alongside
+  it — so a multi-asset version of this strategy would have a better Sharpe
+  ratio before costs and a worse one per unit of capacity.
+- **The holding is one of three values.** Short, flat or long, at full size.
+  No volatility targeting, no scaling into a signal, no risk budget. The
+  expected shortfall and the drawdown reported are therefore the instrument's
+  own, not a risk-managed book's, and a desk that would have cut the position
+  in the drawdown would have had a smaller loss and a smaller return.
+- **No borrow cost, and no borrow at all.** The short days are free and always
+  available. A hard-to-borrow name costs a fee that scales with how crowded
+  the short is, and the days it cannot be located at all are days the
+  strategy did not get the position it was backtested as holding — both of
+  which take the surviving figure down, and the second of which is not a cost
+  but a different strategy.
+- **Financing is charged on the capital, every day.** This one is a choice
+  rather than an omission, and it is worth being explicit: the zero rate is
+  subtracted from every day's return whatever the book was holding. A long
+  funded with borrowed cash pays it; a short earns something on its proceeds
+  and a flat day earns it on cash. The convention here is the conservative
+  reading — that the capital has a cost whether or not it is deployed — and
+  `run_funding` is handed the return series and nothing else, so it could not
+  do otherwise.
+- **One screen, read at one horizon.** Four quoted instruments, one valuation
+  date, and the zero rate read at the length of the backtest. The curve does
+  not move over the hold, so a strategy run across a tightening is funded
+  throughout at whatever the curve said on day one.
+- **No capacity.** The impact law charges each order for the volume it takes,
+  but the strategy's own prints never move the series the next rule is fitted
+  to. So doubling the notional doubles the cost and leaves the signal
+  untouched, when in a real market the signal is partly what the trading has
+  already arbitraged away.
+- **No tax.** Nothing is withheld on the carry and nothing is paid on the
+  gain. For a strategy turning over forty-two times a year the difference
+  between a long-term and a short-term rate is not a rounding adjustment.
+- **No dividends and no corporate actions.** The simulated series is a price,
+  so a short pays no dividend and a long receives none, and no split, spin-off
+  or index reconstitution interrupts the position. Each of those is a day the
+  backtested holding and the holdable holding differ.
+- **Execution is a cost law, not a market.** The square-root impact law and
+  the optimal schedule behind it are a model of average cost against
+  participation. There is no latency, no queue position, no venue choice, no
+  spread to cross and no adverse selection against a resting order — so the
+  cost figure is the part of execution that can be written down, not all of
+  it.
+- **One currency.** Every amount is in the same money, so there is no hedge
+  to pay for and no basis to carry. A strategy funded in one currency and
+  traded in another pays for the mismatch, and the cost of doing so moves
+  around rather more than the financing rate does.
+- **No regime.** The market is one simulation with one set of parameters and,
+  by default, no exploitable drift at all. That is deliberate — the point of
+  the default is that the winner's performance is entirely selection — but it
+  means nothing here says how any of these numbers behave when volatility
+  trebles, which is the condition under which every one of them gets worse at
+  once.
 
 ## Installing
 
