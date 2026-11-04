@@ -173,3 +173,39 @@ than this repository can make about itself. The agreement is 3e-16.
       stops saying anything, and when a gap is closed
 - [x] The suite size the README states recounted in a subprocess against a
       loose bound, after it was found claiming 100 tests against 118
+
+## Phase 13 — Options nobody had chosen
+
+- [x] An unchosen-option gate, which this repository did not have: every
+      defaulted parameter and every defaulted field on a type a caller
+      constructs, required to be supplied by something outside its declaring
+      module
+- [x] The gate's own first reading corrected twice, because its first draft
+      reported three options and no problems and was wrong on both counts. A
+      type named in a *parameter* annotation is an input and the result closure
+      may not claim it: `run` returns a `Pipeline`, `Pipeline` carries
+      `settings: Settings`, so the configuration type every caller constructs
+      had become a result and all ten of its fields invisible
+- [x] Supply resolved against the owner rather than the parameter name, because
+      `run_selection` forwards `crossover_sweep(fast=settings.fast,
+      slow=settings.slow)` and a name-keyed probe read that as `Settings.fast`
+      being chosen — forwarding a default is the opposite of choosing a value,
+      and it is the likeliest way for a configuration field to look exercised
+      while never having been
+- [x] `Settings.fast` and `Settings.slow` then chosen for the first time, with
+      values that move the result: the search drops from 322 candidates to 6,
+      the winner changes, and the effective trial count falls from 35.0 to 3.0
+- [x] The grid filter made visible from here — interleaved tuples keep 6 of the
+      9 pairs offered, where the default grid filters nothing because every
+      fast window is shorter than every slow one
+- [x] The coupling nothing had exercised: the sample floor is `2 * max(slow)`,
+      so narrowing `slow` is what makes a shorter `days` admissible — 520 at
+      the default against 120 at `(40, 60)`
+- [x] Four degenerate grids reachable from this package's own configuration,
+      each now a domain error from the library rather than a numpy or builtin
+      `ValueError` — the defect this exposure found upstream
+- [x] The rule tested against maps built for the purpose rather than by
+      mutating the package, because four tests choose the same option and
+      removing one leaves the others. Seven mutations, seven caught, after a
+      first pass caught four and showed two of the gate's clauses to be
+      redundant with each other
