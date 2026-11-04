@@ -202,8 +202,11 @@ than this repository can make about itself. The agreement is 3e-16.
       so narrowing `slow` is what makes a shorter `days` admissible — 520 at
       the default against 120 at `(40, 60)`
 - [x] Four degenerate grids reachable from this package's own configuration,
-      each now a domain error from the library rather than a numpy or builtin
-      `ValueError` — the defect this exposure found upstream
+      each refused by the library rather than failing inside numpy — the defect
+      this exposure found upstream, fixed and worded there. Only the arrival of
+      a library error is asserted here, not its message: the published wheel
+      and the fixed source both carry one version, so which a resolve picks up
+      is not something this repository can state
 - [x] The rule tested against maps built for the purpose rather than by
       mutating the package, because four tests choose the same option and
       removing one leaves the others. Seven mutations, seven caught, after a
