@@ -236,7 +236,7 @@ happens to be true where it was measured. The bound is the claim.
 paper-to-live run --json     # every figure above, as a payload
 ```
 
-Behind them: 120 tests on Python 3.10 through 3.13, run against the four
+Behind them: 136 tests on Python 3.10 through 3.13, run against the four
 libraries built from their default branches at job time.
 
 ## Known gaps

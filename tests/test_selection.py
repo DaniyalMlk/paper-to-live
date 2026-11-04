@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
-from holdout import deflated_sharpe_ratio
+from holdout import ValidationError, deflated_sharpe_ratio
 
 from paper_to_live.selection import (
     ReconstructionFailed,
@@ -149,3 +149,76 @@ def test_the_first_position_is_a_trade() -> None:
     result = run_selection(Settings())
     assert result.position_changes >= 1
     assert result.positions[0] != 0.0 or result.position_changes >= 1
+
+
+class TestChoosingTheGrid:
+    """``Settings.fast`` and ``Settings.slow``, actually chosen.
+
+    Both are documented knobs that no call site in this repository had ever
+    set. They looked exercised to a probe keyed on parameter name, because
+    ``run_selection`` forwards them as ``crossover_sweep(fast=settings.fast,
+    slow=settings.slow)`` — which passes the defaults onward rather than
+    choosing anything.
+    """
+
+    def test_the_default_grid_is_the_full_product_of_the_two_tuples(self) -> None:
+        # Every fast window is shorter than every slow one by construction:
+        # max(fast) is 29 and min(slow) is 40. So nothing is filtered, and the
+        # candidate count is the plain product -- which is what makes the
+        # filtered cases below a genuine change rather than a coincidence.
+        settings = Settings()
+        assert max(settings.fast) < min(settings.slow)
+        assert len(settings.fast) * len(settings.slow) == 322
+        assert run_selection(settings).candidates == 322
+
+    def test_choosing_a_smaller_grid_changes_the_search_and_the_winner(self) -> None:
+        default = run_selection(Settings())
+        small = run_selection(Settings(fast=(5, 10, 15), slow=(40, 60), days=300))
+        assert small.candidates == 6
+        assert default.candidates == 322
+        # The option is chosen with a value that moves the result, not merely
+        # accepted: the winner, the effective trial count and the deflated
+        # Sharpe all differ.
+        assert small.winner != default.winner
+        assert small.effective_trials < default.effective_trials
+        assert small.deflated != default.deflated
+
+    def test_the_grid_filter_is_visible_from_here(self) -> None:
+        # Interleaved tuples: 3 x 3 offered, and the three pairs where the fast
+        # window is not strictly shorter than the slow one are dropped. The
+        # default grid cannot show this, because it filters nothing.
+        fast, slow = (3, 5, 7), (5, 7, 9)
+        kept = [(f, s) for f in fast for s in slow if f < s]
+        assert len(fast) * len(slow) == 9
+        assert len(kept) == 6
+        assert run_selection(Settings(fast=fast, slow=slow, days=300)).candidates == 6
+
+    def test_a_shorter_slow_window_permits_a_shorter_backtest(self) -> None:
+        # The coupling that was never exercised: the sample length floor is
+        # 2 * max(slow), so choosing slow is what makes days choosable. At the
+        # default slow the floor is 520 and 300 days is refused; narrow slow to
+        # (40, 60) and the same 300 days is ample.
+        assert 2 * max(Settings().slow) == 520
+        with pytest.raises(ValidationError, match="n_days must be at least 520"):
+            run_selection(Settings(days=300))
+        narrowed = Settings(fast=(5, 10), slow=(40, 60), days=300)
+        assert 2 * max(narrowed.slow) == 120
+        assert run_selection(narrowed).candidates == 4
+
+    def test_a_degenerate_grid_is_refused_by_the_library(self) -> None:
+        # The grids reachable from this configuration that have no backtestable
+        # pair: an empty fast or slow, and a grid where no fast window is
+        # strictly shorter than a slow one. Each is refused by holdout rather
+        # than failing inside numpy -- the defect this exposure found upstream,
+        # fixed there and pinned there, in holdout #48 / #49.
+        #
+        # What is asserted here is only that the refusal arrives and is a
+        # library error, not its wording. The published holdout and the fixed
+        # one both carry version 0.1.0, so which of them a resolve picks up is
+        # not something this repository can state, and asserting the new
+        # messages here made this suite fail against the released wheel while
+        # passing against main. The messages belong to the library's own tests.
+        degenerate = (((), (40,)), ((5,), ()), ((40,), (40,)), ((50, 60), (40, 50)))
+        for fast, slow in degenerate:
+            with pytest.raises(ValueError):
+                run_selection(Settings(fast=fast, slow=slow, days=600))
