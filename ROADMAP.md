@@ -212,3 +212,22 @@ than this repository can make about itself. The agreement is 3e-16.
       removing one leaves the others. Seven mutations, seven caught, after a
       first pass caught four and showed two of the gate's clauses to be
       redundant with each other
+
+## Phase 14 — What each module declares is what crosses a boundary
+
+- [x] `types` and `selection` declare what they define. The root exports only
+      `__version__`, so a module's `__all__` is the one statement of what may be
+      imported from it, and the two modules every stage imports from — the
+      home of `Settings` and of `run_selection` — made none
+- [x] `tests/test_surface.py`: every cross-module import in `src`, `tests` and
+      `docs` names something its owner declares — 37 imported names did not —
+      with every module declaring, each declaration holding what its source
+      defines, no name with two owners, and the root pinned at `__version__`
+      so that widening it is a decision rather than drift
+- [x] Definitions and imports both read with `ast`, and each probe tested
+      against source written for it: an aliased import is checked under the
+      exported name, a bare `from . import` names a module, and outside the
+      package a one-dot import does not refer to it
+- [x] On main's two modules, two of nine checks fail — exactly the two the
+      defect is about. Four further breaks, one per remaining rule, are each
+      caught by that rule alone
