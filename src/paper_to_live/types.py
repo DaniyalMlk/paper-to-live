@@ -85,3 +85,12 @@ def annualised(per_period: float) -> float:
 def to_bps(fraction: float) -> float:
     """A fraction of notional in basis points."""
     return fraction * 10_000.0
+
+
+__all__ = [
+    "PERIODS_PER_YEAR",
+    "FloatArray",
+    "Settings",
+    "annualised",
+    "to_bps",
+]
