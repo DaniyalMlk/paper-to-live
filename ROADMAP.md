@@ -231,3 +231,26 @@ than this repository can make about itself. The agreement is 3e-16.
 - [x] On main's two modules, two of nine checks fail — exactly the two the
       defect is about. Four further breaks, one per remaining rule, are each
       caught by that rule alone
+
+## Phase 15 — A caller can name every type a public signature is written in
+
+- [x] `tests/test_signatures.py`: for every declared function, every public
+      method and property of every declared class, and every declared class's
+      fields, each class the annotations mention and each alias they are
+      written in is one a caller can import — compared by identity, with
+      aliases read from source because resolved hints have already expanded
+      them
+- [x] For this package, nameable means declared by some module, since the
+      root is the version alone. For the four libraries it means bound at the
+      library's own root: `screen_for` takes `tenor` instruments and returns a
+      tuple of `tenor`'s `Instrument` union, and `build_curve` returns a
+      `tenor` curve, so a library dropping a root export would break callers
+      here before anything in this repository noticed
+- [x] The libraries checked are pinned against the installed dependency
+      metadata, so a dependency added later joins the check or fails it
+- [x] Nothing fails today. Five breaks, each confirmed applied: a private class
+      in a public signature, `Deposit` and `Instrument` each dropped from
+      `tenor`'s declared root while still bound there, the probe's list branch
+      removed, and the root check matching by name. Each is caught by the rule
+      aimed at it, and the two library breaks by nothing else in this
+      repository
